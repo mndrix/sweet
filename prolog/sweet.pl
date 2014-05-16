@@ -1,10 +1,14 @@
 :- module(sweet, [ if/2
                  , if/3
+                 , in/2
                  , otherwise/0
                  , todo/0
                  , todo/1
                  , todo/2
+                 , op(990,xfy,in)
                  ]).
+
+:- use_module(library(error), [must_be/2]).
 
 
 %% if(:Condition, :Action)
@@ -47,6 +51,63 @@ if(Condition, Action) :-
 :- meta_predicate if(0,0,0).
 if(Cond,Action,Else) :-
     (call(Cond)->call(Action);call(Else)).
+
+
+%% in(?X, +Xs)
+%
+%  True if X is contained in Xs. For convenience, in/2 is exported as an
+%  operator: =|X in [1,2,3]|=. Xs must be nonvar. The following
+%  types for Xs are supported natively:
+%
+%    * list - X is an element of the list
+%    * dict - X is =|Key-Val|= pair for each entry
+%    * library(assoc) - X is =|Key-Val|= pair for each entry
+%    * library(rbtrees) - X is =|Key-Val|= pair for each entry
+%
+%  In each case, if X or Key is ground, a lookup operation (or
+%  memberchk/2) is performed. If X or Key is unbound, each
+%  member of Xs is iterated on backtracking.
+%
+%  To add in/2 support for your own types, add a clause to the multifile
+%  predicate =|sweet:has_member(+Xs,?X)|=. As soon as your clause is
+%  certain that Xs is of the right type, please call !/0. This keeps
+%  in/2 deterministic where possible.
+in(X, Xs) :-
+    must_be(nonvar, Xs),
+    has_member(Xs, X).
+
+:- multifile has_member/2.
+has_member([H|T], X) :-
+    !,
+    ( var(X) ->
+        ( X=H ; has_member(T,X) )
+    ; X=H ->
+        true
+    ; otherwise ->
+        has_member(T, X)
+    ).
+has_member(Dict, X) :-
+    is_dict(Dict),
+    !,
+    X = Key-Val,
+    get_dict(Key,Dict,Val).
+has_member(Assoc, X) :-
+    current_predicate(assoc:is_assoc/1), % proceed if library(assoc) loaded
+    assoc:is_assoc(Assoc),
+    !,
+    X = Key-Val,
+    ( var(Key) ->
+        assoc:gen_assoc(Key,Assoc,Val)
+    ; X = Key-Val ->
+        get_assoc(Key,Assoc,Val)
+    ).
+has_member(Rb, X) :-
+    current_predicate(rbtrees:is_rbtree/1), % proceed if library(rbtrees) loaded
+    rbtrees:is_rbtree(Rb),
+    !,
+    X = Key-Val,
+    rbtrees:rb_in(Key,Val,Rb).
+
 
 %% otherwise is det.
 %

@@ -9,6 +9,12 @@
     ok
     true.
 
+    ?- forall(X in [1,2,3], writeln(ok)).
+    ok
+    ok
+    ok
+    true.
+
 # Description
 
 The `sweet` pack adds some convenient syntactic sugar to Prolog. The
