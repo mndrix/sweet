@@ -7,9 +7,14 @@
 
 # Description
 
+The `sweet` pack adds some convenient syntactic sugar to Prolog. The
+main goal is to reduce the amount of redundant code that one must read
+(and write). Some of the predicates and macros are simple aesthetic
+adjustments (like otherwise/0).
+
 # Changes in this Version
 
-  * ...
+  * First public release
 
 # Installation
 
