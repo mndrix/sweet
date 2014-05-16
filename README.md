@@ -1,9 +1,9 @@
 # Synopsis
 
     :- use_module(library(sweet)).
-    main :-
-        % give one motivating example
-        true.
+	?- (false -> throw(oops); otherwise -> writeln(ok)).
+    ok.
+    true.
 
 # Description
 
