@@ -1,6 +1,9 @@
 :- module(sweet, [ if/2
                  , if/3
                  , otherwise/0
+                 , todo/0
+                 , todo/1
+                 , todo/2
                  ]).
 
 
@@ -63,3 +66,52 @@ if(Cond,Action,Else) :-
 %  here for environments in which autoload is disabled and one doesn't
 %  want to add =|:- use_module(library(quintus), [otherwise/0])|=.
 otherwise.
+
+
+%% todo
+%
+%  Throws the exception =|todo|=. This is convenient during rapid
+%  development to mark code that will be written later. If the predicate
+%  is accidentally executed, it throws an exception so you can view the
+%  stack trace, implement proper code and resume execution.
+%
+%  For exmaple,
+%
+%      ( stuff ->
+%          handle_the_common_case
+%      ; otherwise ->
+%          todo
+%      )
+%
+%  Using todo/0, todo/1 or todo/2 also provides a useful semantic
+%  distinction compared to throw/1. Static analysis tools might prevent
+%  commits or deployment for unfinished code.
+todo :-
+    throw(todo).
+
+%% todo(+Note)
+%
+%  Like todo/0 with a Note. Note can be used to leave yourself a
+%  reminder of what this code is supposed to do once it's implemented.
+%  If todo/1 is executed, it throws an exception.
+todo(Explanation) :-
+    throw(Explanation).
+
+
+%% todo(+Note, ?Extra)
+%
+%  Like todo/1 but provides space for something Extra. This is often a
+%  list of variables that will eventually participate in the code that's
+%  to be written. This style prevents singleton warnings during
+%  development. If todo/2 is executed, Extra is not included in the
+%  exception.
+%
+%  For example,
+%
+%      ( stuff ->
+%          handle_the_common_case(X)
+%      ; otherwise ->
+%          todo("set a meaningful default", [X])
+%      )
+todo(Note,_Extra) :-
+    throw(Note).
