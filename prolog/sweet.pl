@@ -58,5 +58,8 @@ if(Cond,Action,Else) :-
 %      ; otherwise ->
 %          do_default_stuff
 %      ).
-otherwise :-
-    true.
+%
+%  This predicate is identical to quintus:otherwise/0. It's included
+%  here for environments in which autoload is disabled and one doesn't
+%  want to add =|:- use_module(library(quintus), [otherwise/0])|=.
+otherwise.
