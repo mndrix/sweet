@@ -2,7 +2,11 @@
 
     :- use_module(library(sweet)).
 	?- (false -> throw(oops); otherwise -> writeln(ok)).
-    ok.
+    ok
+    true.
+
+    ?- if(fail,throw(oops)), if(true,writeln(ok)).
+    ok
     true.
 
 # Description
