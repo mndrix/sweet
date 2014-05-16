@@ -1,7 +1,8 @@
 # Synopsis
 
     :- use_module(library(sweet)).
-	?- (false -> throw(oops); otherwise -> writeln(ok)).
+
+    ?- (false -> throw(oops); otherwise -> writeln(ok)).
     ok
     true.
 
@@ -15,12 +16,16 @@
     ok
     true.
 
+    :- use lists -> append/{2,3}, last/2.
+    % same as use_module(library(lists),[append/2,append/3,last/2]).
+
 # Description
 
 The `sweet` pack adds some convenient syntactic sugar to Prolog. The
 main goal is to reduce the amount of redundant code that one must read
 (and write). Some of the predicates and macros are simple aesthetic
-adjustments (like otherwise/0).
+adjustments (like otherwise/0). Others, like in/2, define powerful
+interfaces which can be extended by library authors.
 
 # Changes in this Version
 

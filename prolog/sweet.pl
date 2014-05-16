@@ -5,10 +5,21 @@
                  , todo/0
                  , todo/1
                  , todo/2
+                 , use/1
                  , op(990,xfy,in)
+                 , op(1150,fx,use)
                  ]).
 
+:- use_module(library(apply), [maplist/3]).
 :- use_module(library(error), [must_be/2]).
+:- use_module(library(lambda)).
+
+
+% true if module being loaded wants our macros expanded
+wants_sweetner :-
+    prolog_load_context(module, Module),
+    Module \== sweet, % don't sweeten ourselves
+    predicate_property(Module:otherwise,imported_from(sweet)).
 
 
 %% if(:Condition, :Action)
@@ -176,3 +187,86 @@ todo(Explanation) :-
 %      )
 todo(Note,_Extra) :-
     throw(Note).
+
+
+%% use(+ModuleImportOptions)
+%
+%  Macros for importing modules. SWI Prolog's module system is powerful
+%  and well designed. Unfortunately, the syntax is highly repetitive in
+%  the common case (importing library predicates). The following macros
+%  simplify import declarations making them easier to read. Future
+%  releases will add some additional, optional power to the module
+%  system.
+%
+%  These macros are best understood through a series of examples. In
+%  each example, the first line shows the sweetened version. The
+%  following comment shows how the macro expands.
+%
+%      :- use random.
+%      % :- use_module(library(random)).
+%
+%      :- use random -> random/1.
+%      % :- use_module(library(random), [random/1]).
+%
+%      :- use lists -> append/{2,3}.
+%      % :- use_module(library(lists), [append/2,append/3]).
+%
+%      :- use path(baz).
+%      % :- use_module(path(baz)).
+%      % path(baz) could be anything supported by file_search_path/2
+%
+%      :- use my(foo) -> bar/0.
+%      % :- use_module(foo, [bar/0]).
+%      % my/1 is an escape hatch to pass a term straight through to
+%      % use_module.  Named "my" because it's typically used for
+%      % accessing modules relative to the local directory.
+use(Options) :-
+    throw(sweet("use/1 macro not expanded", Options)).
+
+% translate our module spec into a use_module file term
+spec_to_file(my(File),File) :-
+    !.
+spec_to_file(Module,library(Module)) :-
+    atom(Module),
+    !.
+spec_to_file(Module,Module).
+
+% "foo/1,bar/2" into "[foo/1,bar/2]"
+pred_conj_to_list((Pattern,Rest),AllIndicators) :-
+    pred_pattern_to_list(Pattern,Indicators),
+    append(Indicators,RestIndicators,AllIndicators),
+    pred_conj_to_list(Rest,RestIndicators).
+pred_conj_to_list(Pattern,Indicators) :-
+    pred_pattern_to_list(Pattern,Indicators).
+
+% "foo/{2,3}" into "[foo/2,foo/3]"
+pred_pattern_to_list(Name/Arity,[Name/Arity]) :-
+    integer(Arity).
+pred_pattern_to_list(Name/{ArityConj},Indicators) :-
+    xfy_list(',',ArityConj,ArityList),
+    maplist(\Arity^Indicator^(Indicator=Name/Arity),ArityList,Indicators).
+
+% define macro expansions as an easily testable predicate
+macro(
+  (:- use Spec -> PredicateConj),
+  (:- use_module(File, PredicateList) )
+) :-
+    spec_to_file(Spec,File),
+    pred_conj_to_list(PredicateConj,PredicateList).
+macro(
+  (:- use Spec),
+  (:- use_module(File))
+) :-
+    spec_to_file(Spec,File).
+
+% expand use/1 macros
+user:term_expansion(Old,New) :-
+    wants_sweetner,
+    macro(Old,New).
+
+% copied from library(list_util) to avoid the dependency
+xfy_list(Op, Term, [Left|List]) :-
+    Term =.. [Op, Left, Right],
+    xfy_list(Op, Right, List),
+    !.
+xfy_list(_, Term, [Term]).
