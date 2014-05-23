@@ -34,6 +34,9 @@ wants_sweetner :-
 %          open(File,read,Stream),
 %          cleanup(close(Stream)),
 %          read_stream_to_codes(Stream, Codes).
+%
+%  If a clause calls cleanup/1 multiple times, the cleanup steps are
+%  performed in LIFO order.
 :- meta_predicate cleanup(1).
 cleanup(Goal) :-
     throw(sweet("cleanup/1 macro not expanded", Goal)).
@@ -49,7 +52,7 @@ cleanup_macro(Old,New) :-
 cleanup_macro_(cleanup(Cleanup),Past,Rewritten) :-
     % cleanup/1 as final goal in a clause
     cleanup_macro_((cleanup(Cleanup),true),Past,Rewritten).
-cleanup_macro_((cleanup(Cleanup),Call),Past,Rewritten) :-
+cleanup_macro_((cleanup(Cleanup),Call0),Past,Rewritten) :-
     % cleanup/1 with some goals after it (common case)
     !,
     ( Past=[] ->
@@ -58,6 +61,7 @@ cleanup_macro_((cleanup(Cleanup),Call),Past,Rewritten) :-
         reverse(Past,SetupGoals),
         xfy_list(',',Setup,SetupGoals)
     ),
+    (cleanup_macro(Call0,Call) -> true; Call=Call0),
     Rewritten = setup_call_cleanup(Setup,Call,Cleanup).
 cleanup_macro_((A,Cont),Past0,Rewritten) :-
     % A \= cleanup(_)
