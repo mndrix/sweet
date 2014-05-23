@@ -17,44 +17,77 @@ lifo_ :-
     b_getval(foo,Val),
     Val == [].
 
-
 :- use_module(library(tap)).
 
+% test behavior
 reset_global_variable :-
     reset_global_variable_,
     b_getval(foo,Val),
     Val == clean.  % clean up has happened
 
-three_small_parts :-
-     Old = (a,cleanup(b),c),
-     sweet:cleanup_macro(Old,New),
-     New == setup_call_cleanup(a,c,b).
-
-first_goal :-
-    Old = (cleanup(a),b),
-    sweet:cleanup_macro(Old,New),
-    New == setup_call_cleanup(true,b,a).
-
-final_goal :-
-    Old = (a,cleanup(b)),
-    sweet:cleanup_macro(Old,New),
-    New == setup_call_cleanup(a,true,b).
-
-all_alone :-
-    Old = cleanup(a),
-    sweet:cleanup_macro(Old,New),
-    New == setup_call_cleanup(true,true,a).
-
-multiple_cleanings :-
-    Old = (a,cleanup(b),cleanup(c),d),
-    sweet:cleanup_macro(Old,New),
-    New == setup_call_cleanup(
-               a,
-               setup_call_cleanup(true,d,c),
-               b
-           ).
-
 lifo :-
     lifo_,
     b_getval(foo,Val),
     Val == [a,b].
+
+
+% test macro expansion
+
+three_small_parts :-
+     Old = (a,cleanup(b),c),
+     sweet:cleanup_macro(Old,New),
+     New == (a,call_cleanup(c,b)).
+
+first_goal :-
+    Old = (cleanup(a),b),
+    sweet:cleanup_macro(Old,New),
+    New == call_cleanup(b,a).
+
+final_goal :-
+    Old = (a,cleanup(b)),
+    sweet:cleanup_macro(Old,New),
+    New == (a,call(b)).
+
+all_alone :-
+    Old = cleanup(a),
+    sweet:cleanup_macro(Old,New),
+    New == call(a).
+
+multiple_cleanings :-
+    Old = (a,cleanup(b),cleanup(c),d),
+    sweet:cleanup_macro(Old,New),
+    New == (
+        a,
+        call_cleanup(
+            call_cleanup(d,c),
+            b
+        )
+    ).
+
+bare_conditional :-
+    Old = (
+        ( a -> b,cleanup(c),d
+        ; e,cleanup(f),g
+        )
+    ),
+    sweet:cleanup_macro(Old,New),
+    New == (
+        ( a -> b, call_cleanup(d,c)
+        ; e, call_cleanup(g,f)
+        )
+    ).
+
+mixed_conditional :-
+    Old = (
+        prelude,
+        ( a -> b,cleanup(c),d
+        ; e,cleanup(f),g
+        )
+    ),
+    sweet:cleanup_macro(Old,New),
+    New == (
+        prelude,
+        ( a -> b, call_cleanup(d,c)
+        ; e, call_cleanup(g,f)
+        )
+    ).

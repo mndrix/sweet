@@ -26,9 +26,9 @@ wants_sweetner :-
 
 %% cleanup(:Goal) is det.
 %
-%  Sugar for setup_call_cleanup/3. It's like call(Goal) but postponed
+%  Sugar for call_cleanup/2. It's like call(Goal) but postponed
 %  until the clause is finished. The surrounding context provides the
-%  setup and call goals. For example,
+%  call goal. For example,
 %
 %      file_codes(File,Codes) :-
 %          open(File,read,Stream),
@@ -41,31 +41,37 @@ wants_sweetner :-
 cleanup(Goal) :-
     throw(sweet("cleanup/1 macro not expanded", Goal)).
 
-% expand cleanup/1 macro inside a clause body
+% cleanup_macro(+Goal:callable,-Rewritten:callable)
 cleanup_macro(Old,New) :-
-    cleanup_macro_(Old,[],New).
+    cleanup_macro_(Old,New),
+    Old \== New.
 
-% cleanup_macro_(+Cont:callable,+Past:list,-Rewritten:callable)
-% Cont is the continuation.
-% Past is a list of goals (in reverse order) executed before Cont.
-% Rewritten is the result.
-cleanup_macro_(cleanup(Cleanup),Past,Rewritten) :-
+cleanup_macro_(cleanup(Cleanup),Rewritten) :-
     % cleanup/1 as final goal in a clause
-    cleanup_macro_((cleanup(Cleanup),true),Past,Rewritten).
-cleanup_macro_((cleanup(Cleanup),Call0),Past,Rewritten) :-
-    % cleanup/1 with some goals after it (common case)
     !,
-    ( Past=[] ->
-        Setup=true
-    ; otherwise ->
-        reverse(Past,SetupGoals),
-        xfy_list(',',Setup,SetupGoals)
-    ),
-    (cleanup_macro(Call0,Call) -> true; Call=Call0),
-    Rewritten = setup_call_cleanup(Setup,Call,Cleanup).
-cleanup_macro_((A,Cont),Past0,Rewritten) :-
-    % A \= cleanup(_)
-    cleanup_macro_(Cont,[A|Past0],Rewritten).
+    Rewritten = call(Cleanup).
+cleanup_macro_((cleanup(Cleanup),Call0),Rewritten) :-
+    % cleanup/1 with a goal after it (common case)
+    !,
+    cleanup_macro_(Call0,Call),
+    Rewritten = call_cleanup(Call,Cleanup).
+cleanup_macro_((A0,B0),Rewritten) :-
+    % A0 \= cleanup(_)
+    !,
+    cleanup_macro_(A0,A),
+    cleanup_macro_(B0,B),
+    Rewritten = (A,B).
+cleanup_macro_((A->B0;C0),Rewritten) :-
+    !,
+    cleanup_macro_(B0,B),
+    cleanup_macro_(C0,C),
+    Rewritten = (A->B;C).
+cleanup_macro_((A*->B0;C0),Rewritten) :-
+    !,
+    cleanup_macro_(B0,B),
+    cleanup_macro_(C0,C),
+    Rewritten = (A*->B;C).
+cleanup_macro_(Goal,Goal).
 
 
 %% if(:Condition, :Action)
