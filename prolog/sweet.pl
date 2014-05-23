@@ -1,4 +1,5 @@
-:- module(sweet, [ if/2
+:- module(sweet, [ cleanup/1
+                 , if/2
                  , if/3
                  , in/2
                  , otherwise/0
@@ -21,6 +22,46 @@ wants_sweetner :-
     Module \== sweet, % don't sweeten ourselves
     current_predicate(Module:otherwise/0),  % prevent autoloading
     predicate_property(Module:otherwise,imported_from(sweet)).
+
+
+%% cleanup(:Goal) is det.
+%
+%  Sugar for setup_call_cleanup/3. It's like call(Goal) but postponed
+%  until the clause is finished. The surrounding context provides the
+%  setup and call goals. For example,
+%
+%      file_codes(File,Codes) :-
+%          open(File,read,Stream),
+%          cleanup(close(Stream)),
+%          read_stream_to_codes(Stream, Codes).
+:- meta_predicate cleanup(1).
+cleanup(Goal) :-
+    throw(sweet("cleanup/1 macro not expanded", Goal)).
+
+% expand cleanup/1 macro inside a clause body
+cleanup_macro(Old,New) :-
+    cleanup_macro_(Old,[],New).
+
+% cleanup_macro_(+Cont:callable,+Past:list,-Rewritten:callable)
+% Cont is the continuation.
+% Past is a list of goals (in reverse order) executed before Cont.
+% Rewritten is the result.
+cleanup_macro_(cleanup(Cleanup),Past,Rewritten) :-
+    % cleanup/1 as final goal in a clause
+    cleanup_macro_((cleanup(Cleanup),true),Past,Rewritten).
+cleanup_macro_((cleanup(Cleanup),Call),Past,Rewritten) :-
+    % cleanup/1 with some goals after it (common case)
+    !,
+    ( Past=[] ->
+        Setup=true
+    ; otherwise ->
+        reverse(Past,SetupGoals),
+        xfy_list(',',Setup,SetupGoals)
+    ),
+    Rewritten = setup_call_cleanup(Setup,Call,Cleanup).
+cleanup_macro_((A,Cont),Past0,Rewritten) :-
+    % A \= cleanup(_)
+    cleanup_macro_(Cont,[A|Past0],Rewritten).
 
 
 %% if(:Condition, :Action)
@@ -271,3 +312,8 @@ macro(
 user:term_expansion(Old,New) :-
     wants_sweetner,
     macro(Old,New).
+
+% expand cleanup/1 macros
+user:term_expansion((Head:-Old),(Head:-New)) :-
+    wants_sweetner,
+    cleanup_macro(Old,New).
