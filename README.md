@@ -29,7 +29,7 @@ interfaces which can be extended by library authors.
 
 # Changes in this Version
 
-  * First public release
+  * Avoid infinite loops while loading code
 
 # Installation
 

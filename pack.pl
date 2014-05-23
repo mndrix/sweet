@@ -4,7 +4,7 @@ title('Sugar to make Prolog a little sweeter').
 
 requires(lambda).
 
-version('0.0.1').
+version('0.0.2').
 download('http://packs.ndrix.com/sweet/sweet-0.0.1.tgz').
 
 author('Michael Hendricks','michael@ndrix.org').
