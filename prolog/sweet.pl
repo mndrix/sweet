@@ -5,7 +5,7 @@
                  , todo/0
                  , todo/1
                  , todo/2
-                 , use/1
+                 , (use)/1
                  , op(990,xfy,in)
                  , op(1150,fx,use)
                  ]).
