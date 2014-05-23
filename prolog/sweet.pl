@@ -36,7 +36,8 @@ wants_sweetner :-
 %          read_stream_to_codes(Stream, Codes).
 %
 %  If a clause calls cleanup/1 multiple times, the cleanup steps are
-%  performed in LIFO order.
+%  performed in LIFO order. If you need your code to be safe against
+%  asynchronous interrupts, use setup_call_cleanup/3 instead.
 :- meta_predicate cleanup(1).
 cleanup(Goal) :-
     throw(sweet("cleanup/1 macro not expanded", Goal)).
