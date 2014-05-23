@@ -19,6 +19,7 @@
 wants_sweetner :-
     prolog_load_context(module, Module),
     Module \== sweet, % don't sweeten ourselves
+    current_predicate(Module:otherwise/0),  % prevent autoloading
     predicate_property(Module:otherwise,imported_from(sweet)).
 
 
