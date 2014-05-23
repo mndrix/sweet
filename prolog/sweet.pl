@@ -184,6 +184,7 @@ has_member(Rb, X) :-
 %  here for environments in which autoload is disabled and one doesn't
 %  want to add =|:- use_module(library(quintus), [otherwise/0])|=.
 otherwise.
+:- '$hide'(sweet:otherwise/0).
 
 
 %% todo
