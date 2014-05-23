@@ -29,7 +29,9 @@ interfaces which can be extended by library authors.
 
 # Changes in this Version
 
-  * Avoid infinite loops while loading code
+  * Add cleanup/1 macro
+  * Hide otherwise/0 from the tracer
+  * Robustly export use/1
 
 # Installation
 
