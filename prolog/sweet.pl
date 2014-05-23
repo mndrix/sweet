@@ -247,6 +247,13 @@ pred_pattern_to_list(Name/{ArityConj},Indicators) :-
     xfy_list(',',ArityConj,ArityList),
     maplist(\Arity^Indicator^(Indicator=Name/Arity),ArityList,Indicators).
 
+% copied from library(list_util) to avoid the dependency
+xfy_list(Op, Term, [Left|List]) :-
+    Term =.. [Op, Left, Right],
+    xfy_list(Op, Right, List),
+    !.
+xfy_list(_, Term, [Term]).
+
 % define macro expansions as an easily testable predicate
 macro(
   (:- use Spec -> PredicateConj),
@@ -264,10 +271,3 @@ macro(
 user:term_expansion(Old,New) :-
     wants_sweetner,
     macro(Old,New).
-
-% copied from library(list_util) to avoid the dependency
-xfy_list(Op, Term, [Left|List]) :-
-    Term =.. [Op, Left, Right],
-    xfy_list(Op, Right, List),
-    !.
-xfy_list(_, Term, [Term]).
