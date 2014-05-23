@@ -26,7 +26,7 @@ wants_sweetner :-
 
 %% cleanup(:Goal) is det.
 %
-%  Sugar for call_cleanup/2. It's like call(Goal) but postponed
+%  Sugar for call_cleanup/2. It's like ignore(once(Goal)) but postponed
 %  until the clause is finished. The surrounding context provides the
 %  call goal. For example,
 %
@@ -49,7 +49,7 @@ cleanup_macro(Old,New) :-
 cleanup_macro_(cleanup(Cleanup),Rewritten) :-
     % cleanup/1 as final goal in a clause
     !,
-    Rewritten = call(Cleanup).
+    Rewritten = ignore(once(Cleanup)).
 cleanup_macro_((cleanup(Cleanup),Call0),Rewritten) :-
     % cleanup/1 with a goal after it (common case)
     !,

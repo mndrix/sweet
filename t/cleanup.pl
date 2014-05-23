@@ -46,12 +46,12 @@ first_goal :-
 final_goal :-
     Old = (a,cleanup(b)),
     sweet:cleanup_macro(Old,New),
-    New == (a,call(b)).
+    New == (a,ignore(once(b))).
 
 all_alone :-
     Old = cleanup(a),
     sweet:cleanup_macro(Old,New),
-    New == call(a).
+    New == ignore(once(a)).
 
 multiple_cleanings :-
     Old = (a,cleanup(b),cleanup(c),d),
