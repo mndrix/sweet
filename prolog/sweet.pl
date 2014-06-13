@@ -144,7 +144,11 @@ in(X, Xs) :-
 has_member([H|T], X) :-
     !,
     ( var(X) ->
-        ( X=H ; has_member(T,X) )
+        ( T=[] ->
+            X=H
+        ; otherwise ->
+            (X=H ; has_member(T,X) )
+        )
     ; X=H ->
         true
     ; otherwise ->

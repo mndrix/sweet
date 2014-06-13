@@ -21,6 +21,10 @@ list_iterate :-
     aggregate(count, X^(X in [1,2,3]), N),
     N == 3.
 
+list_singleton :-
+    X in [end],
+    X == end.
+
 
 % dicts
 dict_check :-
