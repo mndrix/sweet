@@ -313,12 +313,14 @@ xfy_list(_, Term, [Term]).
 
 % define macro expansions as an easily testable predicate
 macro(
+  term,
   (:- use Spec -> PredicateConj),
   (:- use_module(File, PredicateList) )
 ) :-
     spec_to_file(Spec,File),
     pred_conj_to_list(PredicateConj,PredicateList).
 macro(
+  term,
   (:- use Spec),
   (:- use_module(File))
 ) :-
@@ -327,7 +329,7 @@ macro(
 % expand use/1 macros
 user:term_expansion(Old,New) :-
     wants_sweetner,
-    macro(Old,New).
+    macro(term,Old,New).
 
 % expand cleanup/1 macros
 user:term_expansion((Head:-Old),(Head:-New)) :-
