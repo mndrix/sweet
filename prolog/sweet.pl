@@ -82,7 +82,7 @@ cleanup_macro_(Goal,Goal).
 %  circumstances, one would prefer a noop in that case.
 :- meta_predicate if(0,0).
 if(Condition, Action) :-
-    ( call(Condition) -> call(Action) ; true ).
+    throw(sweet("if/2 macro not expanded",Condition,Action)).
 
 %% if(:Condition, :Action, :Else)
 %
@@ -114,7 +114,7 @@ if(Condition, Action) :-
 %  version control tools.
 :- meta_predicate if(0,0,0).
 if(Cond,Action,Else) :-
-    (call(Cond)->call(Action);call(Else)).
+    throw(sweet("if/3 macro not expanded",Cond,Action,Else)).
 
 
 %% in(?X, +Xs)
@@ -325,11 +325,26 @@ macro(
   (:- use_module(File))
 ) :-
     spec_to_file(Spec,File).
+macro(
+  goal,
+  if(Cond,Action),
+  (Cond->Action;true)
+).
+macro(
+  goal,
+  if(Cond,Action,Else),
+  (Cond->Action;Else)
+).
 
 % expand use/1 macros
 user:term_expansion(Old,New) :-
     wants_sweetner,
     macro(term,Old,New).
+
+% expand goal macros
+user:goal_expansion(Old,New) :-
+    wants_sweetner,
+    macro(goal,Old,New).
 
 % expand cleanup/1 macros
 user:term_expansion((Head:-Old),(Head:-New)) :-

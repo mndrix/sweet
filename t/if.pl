@@ -1,5 +1,8 @@
 :- use_module(library(sweet)).
 
+foo(a).
+foo(b).
+
 :- use_module(library(tap)).
 
 two_true :-
@@ -13,3 +16,8 @@ three_true :-
 
 three_failing :-
     if(fail,throw(oops),true).
+
+
+cut_inside_branch :-
+    foo(_),
+    if(true,!).
