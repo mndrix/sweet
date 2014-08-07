@@ -29,9 +29,8 @@ interfaces which can be extended by library authors.
 
 # Changes in this Version
 
-  * Add cleanup/1 macro
-  * Hide otherwise/0 from the tracer
-  * Robustly export use/1
+  * Support cut/0 inside if/2
+  * Remove trailing choicepoint on `X in [foo]`
 
 # Installation
 
